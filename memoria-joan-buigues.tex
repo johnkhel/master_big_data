@@ -1,0 +1,186 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{acl2015}
+\usepackage{times}
+\usepackage{url}
+\usepackage{latexsym}
+
+\title{Memoria para la asignatura Text Mining en Social Media. Master Big Data UPV 2018}
+
+\author{Joan Buigues Romera \\
+  {\tt joanbuiguesromera@gmail.com} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  El Author Profilling es una disciplina que nos permite clasificar rasgos identificativos de una persona en base a un texto escrito, sin contar con ninguna información adicional. En este caso vamos a tratar de pronosticar la variedad del lenguaje nativo de unos tweets determinados, pertenecientes al corpus del PAN-AP 2017, una competici\'on internacional sobre perfilado de autores. Nos centraremos en crear diccionarios locales de modismos para cada una de las 7 variedades de lenguaje que tenemos identificadas y, aplicando diversos algoritmos de machine learning, trataremos de encontrar el mejor \'indice de acierto en este problema de clasificaci\'on.
+\end{abstract}
+
+
+\section{Introducci\'on}
+
+La capacidad de categorizar un texto en base a su contenido, sin contar con ninguna informaci\'on adicional del autor, resulta muy interesante y \'util desde el punto de vista de varias disciplinas. Estas tareas de Author Profiling pueden servirnos para identificar aspectos del autor como la edad, el g\'enero, el lenguaje nativo y/o el tipo de personalidad. 
+
+
+En este caso pr\'actico de Author Profiling, vamos a usar como referencia datos de PAN-AP 2017. Se trata de una competici\'on a nivel mundial donde el objetivo es resolver un problema de clasificaci\'on para identificar g\'enero y variedad del lenguaje de los autores. 
+
+Nos centraremos en un corpus reducido de tweets escritos por autores de 7 pa\'ises distintos de habla hispana, de los cuales deberemos conseguir clasificar a qu\'e pa\'is pertenecen los autores y de qu\'e género son, en base a lo que han escrito en cada tweet.
+
+Podemos abordar el problema de distintas maneras, aunque contamos con una bolsa de palabras que utilizaremos para que el modelo aprenda, contrastando los textos a clasificar con textos ya clasificados correctamente. Adem\'as, enriqueceremos esta bolsa de palabras con modismos locales para probar el desempenyo de distintos modelos de machine learning y quedarnos con el que mejor fiabilidad nos ofrezca.
+
+
+
+\section{Dataset}
+
+El conjunto de datos del que disponemos est\'a dividido en conjunto de test y conjunto de training, en una proporci\'on de 30\% - 70\%, respectivamente. El formato de presentaci\'on se trata de archivos individuales en XML, uno por cada autor, nombrados con el identificador proporcionado por la API de Twitter. Y cada fichero contiene 100 tweets del mismo autor, adem\'as del propio identificador del autor y la etiqueta de variedad y la de g\'enero. 
+
+
+\section{Propuesta del alumno}
+
+Despu\'es de ejecutar el modelo de base con una bolsa de 100 palabras, hemos visto que el accuracy de la clase variedad ten\'ia m\'as margen de mejora, concretamente 33'83\%, frente al 73'75\% de accuracy para la clase g\'enero. Por tanto, decidimos centrarnos en mejorar la clasificaci\'on del aspecto variedad. 
+
+\begin{itemize}
+    \item N GENDER VARIETY JOINT TIME 
+    \item 10 0.5875 0.2608 0.1442 3.62m
+    \item 50 0.6850 0.3167 0.2142 4.32m
+    \item 100 0.7375 0.3383 0.2525 5.36m
+    \item 500 0.7358 0.5717 0.4175 9.16m
+    \item 1000 0.6983 0.6167 0.4325 12.11m
+    \item 5000 0.7550 0.7275 0.5517 51.81m
+    \item 10000 IMPOSSIBLE, RSTUDIO CRASHES
+\end{itemize}
+   
+
+
+Para ello, recurrimos a buscar en foros especializados los modismos locales m\'as usados en cada variedad a clasificar: chileno, mexicano, peruano, venezolano, colombiano, argentino y espanyol. 
+
+Creamos un diccionario por cada una de las 7 variedades con las palabras m\'as usadas en cada una de ellas. Para ello, hemos tenido que aplicar un pequenyo preproceso, eliminando modismos duplicados. El criterio que seguimos para eliminar estos duplicados fue una comparativa visual del n\'umero de variedades donde aparec\'ian modismos iguales, eliminando en cada caso el de la lista con menor n\'umero de palabras. 
+
+Somos conscientes que esta criba de datos no es la mejor, pero dadas las limitaciones de tiempo, nos pareci\'o la mejor manera para resolver este problema de los modismos duplicados.
+
+Adem\'as, tuvimos que hacer una pequenya transformaci\'on en estos diccionarios, cambiando todos los modismos para que empezaran por min\'uscula y adaptando estos nuevos datasets para que las variables tuvieran el mismo nombre y contaran con el mismo n\'umero de columnas. 
+
+Posteriormente, establecimos la semilla para que los diferentes resultados fueran totalmente comparables. 
+
+
+\section{Resultados experimentales}
+
+Con estos antecedentes, procedemos a aplicar algunos de los algoritmos de machine learning m\'as contrastados a nuestro vocabulario de 100 palabras. 
+
+Comenzaremos con Support Vector Machine, con el que obtenemos los siguientes datos:
+\begin{itemize}
+    \item Accuracy : 0.5229 
+    \item 95\% CI : (0.4963, 0.5493)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc \textless NIR] : \textless  2.2e-16
+\end{itemize}
+       
+
+
+Y a continuación, probaremos con Random Forest, con el que obtenemos una ligera mejora:
+
+\begin{itemize}
+    \item Accuracy : 0.5393   
+    \item 95\% CI : (0.5128, 0.5656)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc > NIR] : \textless  2.2e-16
+\end{itemize}
+
+
+
+También probamos con K-Nearest Neighbors, aunque el accuracy empeora considerablemente:
+
+\begin{itemize}
+    \item Accuracy : 0.345 
+    \item 95\% CI : (0.3201, 0.3706)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc > NIR] : \textless  2.2e-16
+\end{itemize}
+
+
+Y con Naive Bayes recuperamos nivel de accuracy, pero seguimos sin llegar al nivel de Random Forest: 
+
+\begin{itemize}
+    \item Accuracy : 0.4214  
+    \item 95\% CI : (0.3954, 0.4478)
+    \item No Information Rate : 0.1429 
+    \item P-Value [Acc \textless NIR] :  \textless  2.2e-16
+\end{itemize}
+
+
+Probamos con el Nearest Neighbour:
+
+\begin{itemize}
+    \item Accuracy : 0.43 
+    \item 95\% CI : (0.4039, 0.4564)
+    \item No Information Rate : 0.1429 
+    \item P-Value [Acc \textless NIR] :  \textless  2.2e-16
+\end{itemize}
+
+
+Y, por último, probamos un Classification Tree C5.0:
+
+\begin{itemize}
+    \item Accuracy : 0.5071
+    \item 95\% CI : (0.4806, 0.5337)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc \textless NIR] :  \textless  2.2e-16
+\end{itemize}
+
+Como conclusi\'on a esta comparativa de modelos, el mejor accuracy de 53,93\% lo obtenemos con el algoritmo Random Forest.
+
+Probamos a modelar con el baseline de 100 palabras contra la lista individual de Chile, pero mediante la matriz de confusi\'on vemos que existe sobreajuste, es decir, clasifica correctamente para Chile pero falla bastante con el resto de pa\'ises.
+
+
+\begin{itemize}
+    \item Prediction  argentina chile colombia mexico peru spain venezuela
+    \item argentina        74    14       10      7   13     5         1
+    \item chile             9    99       13      6    7     6         6 
+    \item colombia          4     3        9      3    5     2         5
+    \item mexico           17    13        1     27   10     3         2
+    \item peru              5     6        1      1   14     0         3
+    \item spain            78    55      131    134  117   165       134
+    \item venezuela        13    10       35     22   34    19        49
+\end{itemize}
+
+Y los datos de accuracy:
+
+\begin{itemize}
+    \item Accuracy : 0.3121   
+    \item 95\% CI : (0.2879, 0.3371)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc \textless NIR] :  \textless  2.2e-16
+\end{itemize}
+
+
+Ahora procederemos a ampliar la lista de 100 palabras, agregando las listas de todas la variedades. Modelamos con Random Forest el baseline de 500 palabras contra la lista conjunta. 
+
+
+
+Finalmente incrementamos el n\'umero de palabras hasta llegar a cerca de las 1000, con 500 de la bolsa de palabras inicial más 416 de los diccionarios con todas las variedades, y de esta manera llegamos a conseguir con Random Forest un accuracy del 87,14\%.
+
+\begin{itemize}
+    \item Accuracy : 0.8714 
+    \item 95\% CI : (0.8528, 0.8885)
+    \item No Information Rate : 0.1429  
+    \item P-Value [Acc \textless NIR] :  \textless  2.2e-16
+\end{itemize}
+
+
+
+
+\section{Conclusiones y trabajo futuro}
+
+Otra idea que ser\'ia interesante a la hora de clasificar la variedad, se basar\'ia en algo similar a los diccionarios locales que hemos planteado pero utilizando nombres de personajes famosos y pol\'iticos de cada pa\'is. De esta manera, crear\'iamos listas para cada uno de los 7 pa\'ises y las utilizar\'iamos para tratar de identificar los tweets en base a las menciones a que se realicen.
+
+Complementariamente trabajar\'iamos el aspecto “g\'enero”. Ya que, como comentamos inicialmente, hemos planteado el problema de clasificaci\'on \'unicamente para el aspecto “variedad”, omitiendo el “g\'enero” ya que su accuracy inicial era m\'as alto. Pero podr\'iamos trabajarlo, planteando hip\'otesis como las siguientes, que tendr\'iamos que contrastar: 
+
+\begin{itemize}
+    \item Los tweets m\'as largos est\'an escritos por mujeres.
+    \item Los tweets con m\'as n\'umero de emoticonos est\'an escritos por mujeres.
+\end{itemize}
+
+
+
+\end{document}
